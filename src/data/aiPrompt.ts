@@ -1,90 +1,76 @@
-import type { SimulationRecord } from '@/hooks/useSimulationStorage'
 import type { InsightData } from '@/Service/aiService'
-import { parseCurrency } from '@/utils/currency'
-import { calcMonthlySavings } from '@/utils/simulation'
+import type { WellnessRecord } from '@/hooks/useSimulationStorage'
 
-const BASE_SCHEMA_FIELDS = `  "feasibility": {
-    "status": "viable" | "needs_adjustment" | "unfeasible",
-    "content": "<Análise objetiva sobre se a meta é atingível no prazo com o valor disponível. Mencione os números relevantes.>"
-  },
-  "diagnosis": {
-    "content": "<Diagnóstico focado no comprometimento do orçamento: quanto % da renda está comprometida com gastos e dívidas, e o que isso representa para a saúde financeira.>"
-  },
-  "suggestions": {
-    "items": ["<Sugestão prática e concreta para reduzir gastos ou reorganizar o orçamento>"]
-  },
-  "extraIncome": {
-    "items": ["<Ideia prática para gerar renda extra compatível com a realidade brasileira>"]
-  }`
-
-const INVESTMENT_FIELD = `,
-  "investment": {
-    "items": ["<Sugestão de investimento acessível para o perfil apresentado, com foco em atingir a meta>"]
-  }`
-
-const INVESTMENT_TEASER_FIELD = `,
-  "investmentTeaser": {
-    "content": "<Uma frase curta e convidativa (não uma sugestão em si) dizendo que existem formas do dinheiro render enquanto a meta é atingida, e que o usuário pode perguntar sobre isso no chat quando quiser>"
-  }`
-
-const MOTIVATION_FIELD = `,
-  "motivation": {
-    "content": "<Mensagem final motivacional e personalizada, citando a meta pelo nome.>"
-  }
+const RESPONSE_SCHEMA = `{
+  "places": [
+    {
+      "id": "<id_unico_do_lugar>",
+      "name": "<nome do lugar>",
+      "type": "<park | library | cafe | green_area | coworking | other>",
+      "description": "<descrição curta e acolhedora do lugar, 1-2 frases>",
+      "address": "<endereço completo>",
+      "neighborhood": "<bairro>",
+      "latitude": <coordenada latitude>,
+      "longitude": <coordenada longitude>,
+      "features": ["<feature1>", "<feature2>"],
+      "bestFor": ["<用途1>", "<用途2>"]
+    }
+  ],
+  "message": "<Mensagem acolhedora e personalizada explicando por que esses lugares são ideais para o momento do usuário. Máximo 3 frases.>",
+  "tips": ["<Dica prática para aproveitar melhor o momento de bem-estar>"]
 }`
 
-function buildResponseSchema(investmentInterest: string) {
-	let schema = `{\n${BASE_SCHEMA_FIELDS}`
+export function buildAIPrompt(survey: WellnessRecord) {
+	const { city, mood, environment, maxDistance, timePreference } = survey
 
-	if (investmentInterest === 'yes') {
-		schema += INVESTMENT_FIELD
-	} else if (investmentInterest === 'later') {
-		schema += INVESTMENT_TEASER_FIELD
+	const moodLabels: Record<string, string> = {
+		relax: 'Relaxar e respirar',
+		focus: 'Estudar ou se concentrar',
+		disconnect: 'Me desconectar da rotina',
+		nature: 'Ter contato com a natureza',
 	}
 
-	schema += MOTIVATION_FIELD
-	return schema
-}
+	const environmentLabels: Record<string, string> = {
+		outdoor: 'Ao ar livre',
+		indoor: 'Ambiente fechado',
+		both: 'Tanto faz',
+	}
 
-export function buildAIPrompt(simulation: SimulationRecord) {
-	const { income, expenses, debts, goalName, goalAmount, goalDeadline, investmentInterest } =
-		simulation
+	const timeLabels: Record<string, string> = {
+		morning: 'Manhã',
+		afternoon: 'Tarde',
+		night: 'Noite',
+	}
 
-	const monthlySavings = calcMonthlySavings(simulation)
-	const monthlySavingsNeeded = parseCurrency(goalAmount) / parseInt(goalDeadline)
+	return `Você é um guia de bem-estar urbano especializado em encontrar espaços que promovem saúde mental e qualidade de vida nas cidades.
 
-	const investmentRule =
-		investmentInterest === 'no'
-			? '\n- O usuário não tem interesse em investimentos: NÃO mencione investimentos, aplicações financeiras ou rendimento em nenhuma seção, nem na motivação.'
-			: ''
+Analise as respostas do usuário abaixo e recomende de 3 a 5 lugares reais e conhecidos na cidade de ${city || 'São Paulo'} que sejam ideais para o momento que ele está vivendo.
 
-	return `Você é um educador financeiro especializado em finanças pessoais. Analise os dados abaixo e gere um diagnóstico financeiro personalizado com linguagem clara, didática e encorajadora, voltado para pessoas sem conhecimento financeiro. O diagnóstico será exibido diretamente ao usuário no app, fale sempre em segunda pessoa ("você tem...", "sua meta...").
+Dados do usuário:
+- Cidade: ${city || 'São Paulo'}
+- O que precisa: ${moodLabels[mood] || mood}
+- Tipo de ambiente preferido: ${environmentLabels[environment] || environment}
+- Distância máxima disposto a ir: ${maxDistance} km
+- Horário preferido: ${timeLabels[timePreference] || timePreference}
 
-Dados da simulação:
-- Renda mensal bruta: ${income}
-- Custos fixos essenciais: ${expenses}
-- Dívidas e parcelas mensais: ${debts}
-- Valor disponível por mês: ${monthlySavings} reais
-- Meta: ${goalName}
-- Custo da meta: ${goalAmount}
-- Prazo desejado: ${goalDeadline} meses
-- Economia mensal necessária para atingir a meta no prazo: ${monthlySavingsNeeded} reais
-- Saldo após reserva para a meta: ${monthlySavings - monthlySavingsNeeded} reais
+IMPORTANTE:
+- Recomende lugares REAIS e CONHECIDOS na cidade informada (${city || 'São Paulo'})
+- Use coordenadas aproximadas reais dos lugares
+- O primeiro lugar deve ser a "melhor escolha" para o usuário
+- Seja específico em features e por que cada lugar é bom para o que o usuário precisa
+- Se não conhecer a cidade, seja honesto e sugira que o usuário pesquise por locais similares
 
 Retorne APENAS um JSON válido, sem texto adicional, sem blocos de código, neste formato exato:
 
-${buildResponseSchema(investmentInterest)}
+${RESPONSE_SCHEMA}
 
 Regras:
 - Todos os textos em português do Brasil
-- Máximo de 4 itens por lista
-- Seja específico ao citar valores calculados
-- Não repita informações entre seções
-- Nunca use markdown dentro dos valores do JSON${investmentRule}
-- Para o campo "feasibility.status", use os seguintes critérios:
-  - "viable": saldo após reserva para a meta é maior ou igual a 0
-  - "needs_adjustment": saldo negativo de até 20% do valor da economia mensal necessária
-  - "unfeasible": saldo negativo superior a 20% do valor da economia mensal necessária`
+- Máximo 5 lugares por recomendação
+- O campo "features" deve ter no máximo 4 itens
+- O campo "bestFor" deve ter no máximo 3 itens
+- O campo "message" deve ser acolhedor e pessoal
+- Nunca use markdown dentro dos valores do JSON`
 }
 
 export interface ChatMessage {
@@ -93,8 +79,8 @@ export interface ChatMessage {
 }
 
 export function buildFollowUpPrompt(
-	simulation: SimulationRecord,
-	insight: InsightData,
+	survey: WellnessRecord,
+	recommendation: InsightData,
 	history: ChatMessage[],
 	question: string,
 ) {
@@ -102,16 +88,23 @@ export function buildFollowUpPrompt(
 		.map((msg) => `${msg.role === 'user' ? 'Usuário' : 'Você'}: ${msg.content}`)
 		.join('\n')
 
-	return `Você é um educador financeiro conversando com um usuário sobre o plano de ação abaixo. Responda em português do Brasil, com linguagem clara e direta, em texto corrido (sem markdown, sem JSON).
+	const placesList = recommendation.places.map((p) => `- ${p.name} (${p.neighborhood})`).join('\n')
 
-Contexto da simulação:
-- Meta: ${simulation.goalName}
-- Custo da meta: ${simulation.goalAmount}
-- Prazo: ${simulation.goalDeadline} meses
-- Diagnóstico já apresentado: ${insight.diagnosis.content}
-- Motivação: ${insight.motivation.content}
+	return `Você é um guia de bem-estar urbano conversando com um usuário sobre as recomendações de lugares feitas anteriormente. Responda em português do Brasil, com linguagem acolhedora e informativa, em texto corrido (sem markdown, sem JSON).
+
+Contexto do usuário:
+- Cidade: ${survey.city || 'São Paulo'}
+- O que precisa: ${survey.mood}
+- Ambiente preferido: ${survey.environment}
+- Distância máxima: ${survey.maxDistance} km
+- Horário preferido: ${survey.timePreference}
+
+Lugares recomendados:
+${placesList}
+
+Mensagem anterior: ${recommendation.message}
 
 ${historyText ? `Histórico da conversa até agora:\n${historyText}\n` : ''}Nova pergunta do usuário: ${question}
 
-Responda de forma direta e útil, levando em conta o contexto acima.`
+Responda de forma útil e empática, ajudando o usuário a aproveitar melhor os lugares recomendados ou sugerindo alternativas se necessário.`
 }

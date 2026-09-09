@@ -5,22 +5,27 @@ import { SimulationFormPage } from './pages/SimulationFormPage'
 import { SimulationHistoryPage } from './pages/SimulationHistoryPage'
 import { SimulationResultsPage } from './pages/SimulationResultsPage'
 
-export const router = createBrowserRouter([
+export const router = createBrowserRouter(
+	[
+		{
+			element: <RootLayout />,
+			children: [
+				{
+					path: '/',
+					element: <SimulationFormPage />,
+				},
+				{
+					path: '/resultado/:id',
+					element: <SimulationResultsPage />,
+				},
+				{
+					path: '/historico',
+					element: <SimulationHistoryPage />,
+				},
+			],
+		},
+	],
 	{
-		element: <RootLayout />,
-		children: [
-			{
-				path: '/',
-				element: <SimulationFormPage />,
-			},
-			{
-				path: '/resultado/:id',
-				element: <SimulationResultsPage />,
-			},
-			{
-				path: '/historico',
-				element: <SimulationHistoryPage />,
-			},
-		],
+		basename: '/oasisUrbano',
 	},
-])
+)

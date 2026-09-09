@@ -1,3 +1,5 @@
+import type { Place } from '@/data/Place'
+
 interface GeminiResponse {
 	candidates: {
 		content: {
@@ -7,7 +9,7 @@ interface GeminiResponse {
 }
 
 const API_KEY = String(import.meta.env.VITE_GEMINI_API_KEY)
-const MODEL_NAME = 'gemini-flash-latest'
+const MODEL_NAME = 'gemini-3.5-flash-lite'
 const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`
 
 const callGeminiAPI = async (prompt: string) => {
@@ -20,29 +22,42 @@ const callGeminiAPI = async (prompt: string) => {
 	})
 
 	if (!response.ok) {
-		throw new Error(`Erro na requisição: ${response.status}`)
+		const errorData = await response.text()
+		console.error('Erro na API Gemini:', response.status, errorData)
+		throw new Error(`Erro na requisição: ${response.status} - ${errorData}`)
 	}
 
 	return (await response.json()) as GeminiResponse
 }
 
 export interface InsightData {
-	feasibility: {
-		status: 'viable' | 'needs_adjustment' | 'unfeasible'
-		content: string
-	}
-	diagnosis: { content: string }
-	suggestions: { items: string[] }
-	extraIncome: { items: string[] }
-	investment?: { items: string[] }
-	investmentTeaser?: { content: string }
-	motivation: { content: string }
+	places: Place[]
+	message: string
+	tips: string[]
 }
 
 export const getInsight = async (prompt: string) => {
 	const response = await callGeminiAPI(prompt)
 	const json = response.candidates[0].content.parts[0].text
-	return JSON.parse(json) as InsightData
+
+	// Try to extract JSON from the response if it's wrapped in markdown code blocks
+	let jsonStr = json
+	const jsonMatch = json.match(/```(?:json)?\s*([\s\S]*?)```/)
+	if (jsonMatch) {
+		jsonStr = jsonMatch[1]
+	}
+
+	try {
+		return JSON.parse(jsonStr) as InsightData
+	} catch (parseError) {
+		console.error('Erro ao fazer parse do JSON:', parseError)
+		console.error('Resposta recebida:', json)
+		const error = new Error('Resposta da IA não está em formato JSON válido')
+		if (parseError instanceof Error) {
+			error.cause = parseError
+		}
+		throw error
+	}
 }
 
 export const askFollowUp = async (prompt: string) => {

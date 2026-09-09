@@ -18,7 +18,7 @@ interface AIInsightCardProps {
 export function AIInsightsCard({ simulationId }: AIInsightCardProps) {
 	const { insight, isLoading, error, fetchInsight } = useInsight(simulationId)
 	const { getFormData } = useSimulationStorage()
-	const simulation = getFormData(simulationId)
+	const survey = getFormData(simulationId)
 
 	const {
 		messages,
@@ -34,17 +34,17 @@ export function AIInsightsCard({ simulationId }: AIInsightCardProps) {
 	}, [messages, isChatLoading])
 
 	const handleSend = () => {
-		if (!question.trim() || !simulation || !insight) return
-		sendMessage(question, simulation, insight)
+		if (!question.trim() || !survey || !insight) return
+		sendMessage(question, survey, insight)
 		setQuestion('')
 	}
 
 	return (
-		<div className="bg-card order-2 flex max-h-[600px] flex-col rounded-2xl p-6 shadow-[4px_4px_18px_0px_rgba(0,0,0,0.2)] lg:order-1 lg:col-span-2">
+		<div className="bg-card flex max-h-[500px] flex-col rounded-2xl p-4 shadow-[4px_4px_18px_0px_rgba(0,0,0,0.2)] sm:max-h-[600px] sm:p-6">
 			<div className="mb-3 flex items-center gap-1.5">
-				<span>✨</span>
-				<span className="text-primary text-xs font-semibold tracking-widest uppercase">
-					Insight Financeiro Personalizado
+				<span className="text-base sm:text-lg">🌿</span>
+				<span className="text-primary text-[10px] font-semibold tracking-widest uppercase sm:text-xs">
+					Recomendações de Bem-Estar
 				</span>
 			</div>
 
@@ -92,21 +92,21 @@ export function AIInsightsCard({ simulationId }: AIInsightCardProps) {
 			</div>
 
 			{!isLoading && insight && !error && (
-				<div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-4">
+				<div className="mt-3 flex items-center gap-2 border-t border-white/10 pt-3 sm:mt-4 sm:pt-4">
 					<input
 						value={question}
 						onChange={(e) => setQuestion(e.target.value)}
 						onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-						placeholder="Quais são os investimentos mais seguros que posso usar..."
-						className="bg-background flex-1 rounded-full px-4 py-2 text-sm outline-none"
+						placeholder="Tem outro lugar parecido com esse na região..."
+						className="bg-background flex-1 rounded-full px-3 py-2 text-xs outline-none sm:px-4 sm:text-sm"
 					/>
 					<button
 						onClick={handleSend}
 						disabled={isChatLoading}
-						className="bg-primary flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-full text-white disabled:opacity-50"
+						className="bg-primary flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-white disabled:opacity-50 sm:h-9 sm:w-9"
 						aria-label="Enviar pergunta"
 					>
-						<Send size={16} />
+						<Send size={14} className="sm:h-4 sm:w-4" />
 					</button>
 				</div>
 			)}

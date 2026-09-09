@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { buildAIPrompt } from '@/data/aiPrompt'
-import type { SimulationRecord } from '@/data/Simulation'
+import type { WellnessRecord } from '@/data/WellnessSurvey'
 import { useSimulationStorage } from '@/hooks/useSimulationStorage'
 import { getInsight, type InsightData } from '@/Service/aiService'
 
@@ -10,10 +10,10 @@ export const useInsight = (id: string) => {
 	const { getFormData, updateSimulation } = useSimulationStorage()
 
 	const [insight, setInsight] = useState<InsightData | null>(() => {
-		const simulation = getFormData(id)
+		const survey = getFormData(id)
 
-		if (simulation?.insight) {
-			return simulation.insight
+		if (survey?.insight) {
+			return survey.insight
 		}
 
 		return null
@@ -23,11 +23,11 @@ export const useInsight = (id: string) => {
 	const [error, setError] = useState<string | null>(null)
 
 	const fetchInsight = useCallback(
-		async (simulationId: string) => {
-			const simulation = getFormData(simulationId)
+		async (surveyId: string) => {
+			const survey = getFormData(surveyId)
 
-			if (!simulation) {
-				setError('Simulação não encontrada.')
+			if (!survey) {
+				setError('Pesquisa não encontrada.')
 				return
 			}
 
@@ -36,16 +36,19 @@ export const useInsight = (id: string) => {
 			setError(null)
 
 			try {
-				const prompt = buildAIPrompt(simulation)
+				const prompt = buildAIPrompt(survey)
+				console.log('Enviando prompt para IA...')
 				const data = await getInsight(prompt)
+				console.log('Resposta da IA recebida:', data)
 				setInsight(data)
 
-				updateSimulation(simulationId, {
-					...simulation,
+				updateSimulation(surveyId, {
+					...survey,
 					insight: data,
-				} as SimulationRecord)
-			} catch {
-				setError('Erro ao gerar o diagnóstico. Tente novamente.')
+				} as WellnessRecord)
+			} catch (err) {
+				console.error('Erro completo:', err)
+				setError('Erro ao gerar as recomendações. Verifique sua conexão e tente novamente.')
 			} finally {
 				isRequestPending.current = false
 				setIsLoading(false)

@@ -1,8 +1,8 @@
-# Planej.ai 💰
+# Oásis Urbano 🌿
 
-Educador Financeiro Inteligente construído com **React**, **TypeScript** e **IA Generativa** (Google Gemini). A pessoa usuária preenche um formulário em etapas com renda, gastos e uma meta financeira, e recebe um diagnóstico personalizado — com sugestões práticas, análise de viabilidade e projeção de quanto tempo levaria para alcançar o objetivo investindo o dinheiro à taxa CDI atual.
+Plataforma de saúde mental e bem-estar construída com **React**, **TypeScript** e **IA Generativa** (Google Gemini). A pessoa usuária preenche uma pesquisa personalizada sobre o que precisa naquele momento (relaxar, estudar, se desconectar, contato com natureza) e recebe recomendações curadas de lugares na cidade — parques, bibliotecas, cafés tranquilos, áreas verdes — com rota direta para o Google Maps.
 
-Projeto desenvolvido como desafio final do bootcamp **"Desenvolvendo Seu Educador Financeiro Inteligente Com React E IA Generativa"** (DIO), a partir do [repositório base](https://github.com/digitalinnovationone/planejai).
+**Objetivo:** Conectar pessoas a espaços que promovem bem-estar urbano, usando tecnologia de forma humanitária e sustentável.
 
 ## ✨ O que o projeto faz
 

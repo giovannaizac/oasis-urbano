@@ -48,12 +48,12 @@ export function FormStep({
 	}
 
 	return (
-		<div className="bg-card rounded-2xl p-6 shadow-[4px_4px_18px_0px_rgba(0,0,0,0.2)] sm:p-8">
-			<div className="bg-primary mb-4 flex h-15 w-15 items-center justify-center rounded-xl">
-				<Icon size={32} className="text-primary-foreground" />
+		<div className="bg-card rounded-2xl p-4 shadow-[4px_4px_18px_0px_rgba(0,0,0,0.2)] sm:p-8">
+			<div className="bg-primary mb-3 flex h-12 w-12 items-center justify-center rounded-xl sm:mb-4 sm:h-15 sm:w-15">
+				<Icon size={24} className="text-primary-foreground sm:h-8 sm:w-8" />
 			</div>
-			<h2 className="text-primary mb-1 text-xs font-semibold tracking-widest uppercase">{title}</h2>
-			<h3 className="text-foreground mb-6 text-xl leading-snug font-semibold sm:text-2xl">
+			<h2 className="text-primary mb-1 text-[10px] font-semibold tracking-widest uppercase sm:text-xs">{title}</h2>
+			<h3 className="text-foreground mb-4 text-lg leading-snug font-semibold sm:mb-6 sm:text-2xl">
 				{question}
 			</h3>
 			<form onSubmit={handleSubmit} className="flex flex-col gap-4">

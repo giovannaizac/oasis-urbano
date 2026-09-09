@@ -1,12 +1,9 @@
-import { CalendarClock, CreditCardIcon, Goal, Landmark, PiggyBank, Wallet } from 'lucide-react'
+import { MapPin, Navigation, TreePine } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 
 import { AIInsightsCard } from '@/components/features/SimulationsResults/AIInsightCardProps'
-import { Card } from '@/components/features/SimulationsResults/Card'
-import { InvestmentAcceleration } from '@/components/features/SimulationsResults/InvestmentAcceleration'
 import { PageHero } from '@/components/shared/PageHero'
 import { useSimulationStorage } from '@/hooks/useSimulationStorage'
-import { calcMonthlySavings } from '@/utils/simulation'
 
 export function SimulationResultsPage() {
 	const { id } = useParams<{ id: string }>()
@@ -15,64 +12,71 @@ export function SimulationResultsPage() {
 	const data = id ? getFormData(id) : null
 
 	if (!data) {
-		return <p> Simulação não encontrada.</p>
+		return <p>Pesquisa não encontrada.</p>
 	}
 
-	const monthlySavings = calcMonthlySavings(data)
+	const moodLabels: Record<string, string> = {
+		relax: 'Relaxar e respirar',
+		focus: 'Estudar ou se concentrar',
+		disconnect: 'Me desconectar da rotina',
+		nature: 'Ter contato com a natureza',
+	}
+
+	const environmentLabels: Record<string, string> = {
+		outdoor: 'Ao ar livre',
+		indoor: 'Ambiente fechado',
+		both: 'Tanto faz',
+	}
 
 	return (
-		<main className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
+		<main className="mx-auto max-w-6xl px-3 py-6 sm:px-4 sm:py-10 sm:py-14">
 			<PageHero
-				title="Resultado da sua simulação"
-				subtitle="Com base no seu perfil financeiro e objetivos."
+				title="Seu oásis foi encontrado"
+				subtitle={`Lugares perfeitos em ${data.city || 'sua cidade'} para o seu momento.`}
 			/>
-			<div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-				<Card icon={Goal} label="Custo da Meta" value={data.goalAmount} subtitle={data.goalName} />
-				<Card
-					icon={CalendarClock}
-					label="Prazo"
-					value={`${data.goalDeadline} meses`}
-					subtitle="Prazo para atingir a meta"
-				/>
-				<Card
-					variant="primary"
-					icon={PiggyBank}
-					label="Economia mensal"
-					value={`R$ ${monthlySavings.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-					subtitle="Economia mensal necessária"
-				/>
-			</div>
-			<div className="grid gap-6 lg:grid-cols-3">
-				<AIInsightsCard simulationId={data.id} />
-
-				<div className="order-1 flex flex-col gap-6 lg:order-2">
-					{data.investmentInterest === 'yes' && (
-						<InvestmentAcceleration
-							monthlySavings={monthlySavings}
-							goalAmount={data.goalAmount}
-							deadlineMonths={data.goalDeadline}
-						/>
-					)}
-					<Card
-						icon={Wallet}
-						label="Renda mensal"
-						value={data.income}
-						subtitle="Renda total bruta por mês"
-					/>
-					<Card
-						icon={CreditCardIcon}
-						label="Custos Fixos de Vida"
-						value={data.expenses}
-						subtitle="Gastos essenciais por mês"
-					/>
-					<Card
-						icon={Landmark}
-						label="Dívidas / Parcelas"
-						value={data.debts}
-						subtitle="Valor comprometido em parcelas/depósito"
-					/>
+			<div className="mb-4 grid grid-cols-1 gap-3 sm:mb-6 sm:grid-cols-4 sm:gap-4">
+				<div className="bg-card flex items-center gap-3 rounded-2xl p-3 shadow-[4px_4px_18px_0px_rgba(0,0,0,0.2)] sm:p-4">
+					<div className="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-full sm:h-10 sm:w-10">
+						<MapPin size={18} className="text-primary sm:h-5 sm:w-5" />
+					</div>
+					<div>
+						<p className="text-muted-foreground text-[10px] sm:text-xs">Cidade</p>
+						<p className="text-foreground text-xs font-semibold sm:text-sm">{data.city || 'Não informada'}</p>
+					</div>
+				</div>
+				<div className="bg-card flex items-center gap-3 rounded-2xl p-3 shadow-[4px_4px_18px_0px_rgba(0,0,0,0.2)] sm:p-4">
+					<div className="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-full sm:h-10 sm:w-10">
+						<TreePine size={18} className="text-primary sm:h-5 sm:w-5" />
+					</div>
+					<div>
+						<p className="text-muted-foreground text-[10px] sm:text-xs">O que você precisa</p>
+						<p className="text-foreground text-xs font-semibold sm:text-sm">
+							{moodLabels[data.mood] || data.mood}
+						</p>
+					</div>
+				</div>
+				<div className="bg-card flex items-center gap-3 rounded-2xl p-3 shadow-[4px_4px_18px_0px_rgba(0,0,0,0.2)] sm:p-4">
+					<div className="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-full sm:h-10 sm:w-10">
+						<Navigation size={18} className="text-primary sm:h-5 sm:w-5" />
+					</div>
+					<div>
+						<p className="text-muted-foreground text-[10px] sm:text-xs">Ambiente</p>
+						<p className="text-foreground text-xs font-semibold sm:text-sm">
+							{environmentLabels[data.environment] || data.environment}
+						</p>
+					</div>
+				</div>
+				<div className="bg-card flex items-center gap-3 rounded-2xl p-3 shadow-[4px_4px_18px_0px_rgba(0,0,0,0.2)] sm:p-4">
+					<div className="bg-primary/10 flex h-9 w-9 items-center justify-center rounded-full sm:h-10 sm:w-10">
+						<Navigation size={18} className="text-primary sm:h-5 sm:w-5" />
+					</div>
+					<div>
+						<p className="text-muted-foreground text-[10px] sm:text-xs">Distância máxima</p>
+						<p className="text-foreground text-xs font-semibold sm:text-sm">{data.maxDistance} km</p>
+					</div>
 				</div>
 			</div>
+			<AIInsightsCard simulationId={data.id} />
 		</main>
 	)
 }

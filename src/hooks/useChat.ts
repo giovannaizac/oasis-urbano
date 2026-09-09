@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 
 import { buildFollowUpPrompt, type ChatMessage } from '@/data/aiPrompt'
-import type { SimulationRecord } from '@/hooks/useSimulationStorage'
+import type { WellnessRecord } from '@/hooks/useSimulationStorage'
 import { askFollowUp, type InsightData } from '@/Service/aiService'
 
-const STORAGE_PREFIX = 'planejai:chat:'
+const STORAGE_PREFIX = 'oasisurbano:chat:'
 
 export function useChat(simulationId: string) {
 	const [messages, setMessages] = useState<ChatMessage[]>(() => {
@@ -20,15 +20,15 @@ export function useChat(simulationId: string) {
 
 	const sendMessage = async (
 		question: string,
-		simulation: SimulationRecord,
-		insight: InsightData,
+		survey: WellnessRecord,
+		recommendation: InsightData,
 	) => {
 		setError(null)
 		setMessages((prev) => [...prev, { role: 'user', content: question }])
 		setIsLoading(true)
 
 		try {
-			const prompt = buildFollowUpPrompt(simulation, insight, messages, question)
+			const prompt = buildFollowUpPrompt(survey, recommendation, messages, question)
 			const answer = await askFollowUp(prompt)
 			setMessages((prev) => [...prev, { role: 'ai', content: answer }])
 		} catch (err) {

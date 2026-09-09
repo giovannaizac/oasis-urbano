@@ -1,5 +1,7 @@
+import { MapPin } from 'lucide-react'
 import type { PropsWithChildren } from 'react'
 
+import { type Place, placeTypeEmojis, placeTypeLabels } from '@/data/Place'
 import type { InsightData } from '@/Service/aiService'
 
 interface ContentProps {
@@ -30,73 +32,89 @@ function OrderedList({ items }: { items: string[] }) {
 	)
 }
 
-const statusStyles = {
-	viable: {
-		label: 'Meta viável no prazo',
-		className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-	},
-	needs_adjustment: {
-		label: 'Ajuste necessário',
-		className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-	},
-	unfeasible: {
-		label: 'Meta inviável no prazo',
-		className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-	},
+function PlaceCard({ place, isBestChoice }: { place: Place; isBestChoice?: boolean }) {
+	const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${place.latitude},${place.longitude}`
+
+	return (
+		<div
+			className={`rounded-xl border p-4 ${
+				isBestChoice ? 'border-primary bg-primary/5' : 'border-border bg-background'
+			}`}
+		>
+			<div className="mb-2 flex items-start justify-between">
+				<div className="flex items-center gap-2">
+					<span className="text-xl">{placeTypeEmojis[place.type]}</span>
+					<div>
+						<h4 className="text-foreground text-sm font-semibold">{place.name}</h4>
+						<p className="text-muted-foreground text-xs">
+							{placeTypeLabels[place.type]} • {place.neighborhood}
+						</p>
+					</div>
+				</div>
+				{isBestChoice && (
+					<span className="bg-primary text-primary-foreground rounded-full px-2 py-0.5 text-xs font-semibold">
+						⭐ Melhor escolha
+					</span>
+				)}
+			</div>
+
+			<p className="text-muted-foreground mb-3 text-sm">{place.description}</p>
+
+			<div className="mb-3 flex flex-wrap gap-1">
+				{place.features.map((feature, i) => (
+					<span key={i} className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-xs">
+						{feature}
+					</span>
+				))}
+			</div>
+
+			<div className="mb-3">
+				<p className="text-muted-foreground text-xs font-medium">Ideal para:</p>
+				<div className="mt-1 flex flex-wrap gap-1">
+					{place.bestFor.map((use, i) => (
+						<span key={i} className="bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs">
+							{use}
+						</span>
+					))}
+				</div>
+			</div>
+
+			<a
+				href={googleMapsUrl}
+				target="_blank"
+				rel="noopener noreferrer"
+				className="text-primary flex items-center gap-1 text-xs font-medium hover:underline"
+			>
+				<MapPin size={12} />
+				Ver no Google Maps
+			</a>
+		</div>
+	)
 }
 
 export function Content({ insight }: ContentProps) {
-	const status = statusStyles[insight.feasibility.status] ?? null
-
 	return (
 		<div className="lg:max-h-93 lg:scrollbar-thin lg:[scrollbar-color:var(--border)_transparent] lg:overflow-y-auto lg:pr-2">
-			<section className="flex flex-col gap-2">
-				<div className="flex flex-col items-start gap-2 sm:flex-row">
-					<span className="text-foreground text-sm font-semibold">🎯 Viabilidade da Meta</span>
-					{status && (
-						<span
-							className={`w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold ${status.className}`}
-						>
-							{status.label}
-						</span>
-					)}
+			<section className="mb-4">
+				<SectionTitle>🌿 Seu Oásis</SectionTitle>
+				<Paragraph>{insight.message}</Paragraph>
+			</section>
+
+			<section className="mb-4">
+				<SectionTitle>📍 Lugares Recomendados</SectionTitle>
+				<div className="mt-3 flex flex-col gap-3">
+					{insight.places.map((place, index) => (
+						<PlaceCard key={place.id} place={place} isBestChoice={index === 0} />
+					))}
 				</div>
-				<Paragraph>{insight.feasibility.content}</Paragraph>
 			</section>
 
-			<section>
-				<SectionTitle>💰 Diagnóstico Financeiro</SectionTitle>
-				<Paragraph>{insight.diagnosis.content}</Paragraph>
-			</section>
-
-			<section>
-				<SectionTitle>📋 Sugestões Práticas</SectionTitle>
-				<OrderedList items={insight.suggestions.items} />
-			</section>
-
-			<section>
-				<SectionTitle>💡 Como Aumentar sua Renda</SectionTitle>
-				<OrderedList items={insight.extraIncome.items} />
-			</section>
-
-			{insight.investment && (
+			{insight.tips && insight.tips.length > 0 && (
 				<section>
-					<SectionTitle>🏦 Sugestões de Investimento</SectionTitle>
-					<OrderedList items={insight.investment.items} />
+					<SectionTitle>💡 Dicas para seu momento</SectionTitle>
+					<OrderedList items={insight.tips} />
 				</section>
 			)}
-
-			{insight.investmentTeaser && (
-				<section>
-					<SectionTitle>✨ Quer saber mais?</SectionTitle>
-					<Paragraph>{insight.investmentTeaser.content}</Paragraph>
-				</section>
-			)}
-
-			<section>
-				<SectionTitle>🚀 Mensagem Final</SectionTitle>
-				<Paragraph>{insight.motivation.content}</Paragraph>
-			</section>
 		</div>
 	)
 }

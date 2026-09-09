@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { type SimulationFormData, simulationFormSteps } from '@/data/Simulation'
+import { type WellnessFormData, wellnessFormSteps } from '@/data/WellnessSurvey'
 import { useSimulationStorage } from '@/hooks/useSimulationStorage'
 
 import { FormStep } from './FormStep'
@@ -11,10 +11,10 @@ export const SimulationForm = () => {
 	const { saveFormData } = useSimulationStorage()
 	const navigate = useNavigate()
 	const [currentStepIndex, setCurrentStepIndex] = useState(0)
-	const [formData, setFormData] = useState<SimulationFormData>({} as SimulationFormData)
+	const [formData, setFormData] = useState<WellnessFormData>({} as WellnessFormData)
 
-	const totalSteps = simulationFormSteps.length
-	const currentStep = simulationFormSteps[currentStepIndex]
+	const totalSteps = wellnessFormSteps.length
+	const currentStep = wellnessFormSteps[currentStepIndex]
 
 	const handleNextStep = (value: string) => {
 		const updatedFormData = { ...formData, [currentStep.id]: value }
