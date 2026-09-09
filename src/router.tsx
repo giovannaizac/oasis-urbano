@@ -26,6 +26,6 @@ export const router = createBrowserRouter(
 		},
 	],
 	{
-		basename: '/oasisUrbano',
+		basename: '/oasis-urbano',
 	},
 )
