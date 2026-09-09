@@ -5,7 +5,7 @@ import { defineConfig } from 'vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-	base: '/oasisUrbano/',
+	base: '/oasis-urbano/',
 	plugins: [react(), tailwindcss()],
 	resolve: {
 		alias: {
